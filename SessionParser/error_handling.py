@@ -1,5 +1,6 @@
 import sys
 import logging
+import traceback
 
 
 def error_handler(message, do_exit=False):

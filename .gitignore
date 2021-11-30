@@ -221,3 +221,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 SessionParser/sp.db
+SessionParser/test.py
+SessionParser/chromedriver.exe

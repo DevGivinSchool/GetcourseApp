@@ -1,0 +1,5 @@
+{
+    "chromedriver_path": "/usr/local/bin/chromedriver",
+    "db_file": "sp.db",
+    "headless": false
+}
