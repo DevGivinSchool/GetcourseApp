@@ -4,6 +4,7 @@ import logging
 import os
 import database
 import utils
+import parser
 from error_handling import error_handler as error_handler
 
 # Global variables
@@ -63,16 +64,16 @@ if __name__ == '__main__':
 
     # TODO Инициализация БД
     if os.path.isfile(settings['db_file']):
-        logging.info(f'База данных {db_file} обнаружена')
+        logging.info(f"База данных {settings['db_file']} обнаружена")
     else:
-        logging.error(f'База данных {db_file} не обнаружена')
+        logging.error(f"База данных {settings['db_file']} не обнаружена")
         # TODO Сейчас без БД падать не нужно, а далее база должна быть и при её отсутствии нужно падать
         # exit(0)
         database.init_database()
 
     # Соединяемся с БД
-    db = database.create_connection(db_file)
-    logging.info(f"Успешное подключение к {db_file}")
+    db = database.create_connection(settings['db_file'])
+    logging.info(f"Успешное подключение к {settings['db_file']}")
 
     # TODO Подключаться на сайт и получать данные
     parser.parse_sessions(settings, env)
