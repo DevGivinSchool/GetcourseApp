@@ -19,31 +19,40 @@ def parse_sessions(settings, env):
             browser = webdriver.Chrome(settings['chromedriver_path'])
         logging.debug(f"browser={browser}")
 
+        # browser.implicitly_wait(10)  # seconds
+
         # Вход в GetCourse иначе страница заказа будет недоступна
         logging.debug("Try login to GetCourse")
-        browser.get(urls.full)  # TODO
-        # input_login = browser.find_element_by_css_selector("input.form-control.form-field-email")
+        browser.get("https://givin.school/cms/system/login?required=true")  # TODO
         input_login = browser.find_element(By.CSS_SELECTOR, "input.form-control.form-field-email")
         input_login.send_keys(env[0])
-        # input_password = browser.find_element_by_css_selector("input.form-control.form-field-password")
         input_password = browser.find_element(By.CSS_SELECTOR, "input.form-control.form-field-password")
         input_password.send_keys(env[1])
-        # button = browser.find_element_by_css_selector(".float-row > .btn-success")
         button = browser.find_element(By.CSS_SELECTOR, ".float-row > .btn-success")
         button.click()
-        time.sleep(10)
+        time.sleep(5)
 
         # Выделить из ссылки заказа ID и открыть страницу заказа (ссылка которая в письме не открывается)
         logging.debug("Открыть страницу sessions")
-        logging.debug(f"link={urls.full}")
-        browser.get(urls.full)
-        time.sleep(10)
+        logging.debug(f"link={urls.base_url}")
+        browser.get(urls.base_url)
+        time.sleep(5)
+
+        # Поиск кнопки Добавить условие
+        logging.debug("Поиск кнопки Добавить условие")
+        button_show_more = browser.find_element(By.CSS_SELECTOR, "button.btn.btn-default.dropdown")
+        button_show_more.click()
+        search_input = browser.find_element(By.CSS_SELECTOR, "input.search-input")
+        search_input.clear()
+        search_input.send_keys("Авторизованный")
+        menu_item = browser.find_element(By.CSS_SELECTOR, '[data-type="is_user"]')
+        menu_item.click()
+        time.sleep(5)
 
         # Поиск кнопки Показать еще
-        logging.debug("Поиск кнопки Показать еще")
-        # button_show_more = browser.find_element_by_css_selector("a.btn.btn-default")
-        button_show_more = browser.find_element(By.CSS_SELECTOR, "a.btn.btn-default")
-        logging.debug(f"button_show_more.text={button_show_more.text}")
+        # logging.debug("Поиск кнопки Показать еще")
+        # button_show_more = browser.find_element(By.CSS_SELECTOR, "a.btn.btn-default")
+        # logging.debug(f"button_show_more.text={button_show_more.text}")
 
         # закрываем браузер после всех манипуляций
         logging.debug("Закрываем браузер после всех манипуляций")
