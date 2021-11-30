@@ -8,9 +8,6 @@ from error_handling import error_handler as error_handler
 
 # Global variables
 DEBUG = True
-gcl = None
-gcp = None
-environment = None  # Определяет среду в которой выполняется программа dev, prod и т.п. Для каждой среды свои настройки.
 
 
 def config_logging():
@@ -27,11 +24,9 @@ def config_logging():
 
 def get_env():
     logging.info('Get environment variables')
-    global gcl
-    global gcp
-    global environment
     gcl = os.getenv('GCL')
     gcp = os.getenv('GCP')
+    # Определяет среду в которой выполняется программа dev, prod и т.п. Для каждой среды свои настройки.
     environment = os.getenv('ENVIRONMENT')
     try:
         if gcl is None:
@@ -45,20 +40,20 @@ def get_env():
     logging.debug(f"gcl={gcl}")
     logging.debug(f"gcp={gcp}")
     logging.debug(f"environment={environment}")
+    env = (gcl, gcp, environment)
+    return env
 
 
 if __name__ == '__main__':
-    db_file = 'sp.db'  # Путь к БД
-
     # Конфигурируем формат логирования
     config_logging()
     logging.info('SessionParser start')
 
     # Получаем значения переменных с приватными данными
-    get_env()
+    env = get_env()
 
     # Считываем настройки программы из settings.json
-    settings_file = f"settings.{environment}.json"
+    settings_file = f"settings.{env[2]}.json"
     settings = utils.read_json_file(settings_file)
     try:
         if settings is None:
@@ -80,3 +75,4 @@ if __name__ == '__main__':
     logging.info(f"Успешное подключение к {db_file}")
 
     # TODO Подключаться на сайт и получать данные
+    parser.parse_sessions(settings, env)
