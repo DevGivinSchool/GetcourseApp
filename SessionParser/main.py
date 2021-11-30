@@ -3,7 +3,10 @@
 import logging
 import os
 import traceback
-import sys
+import database
+from error_handling import error_handler as error_handler
+
+DEBUG = True
 
 
 def config_logging():
@@ -11,15 +14,11 @@ def config_logging():
     handler = logging.StreamHandler()
     handler.setFormatter(log_formatter)
     custom_logger = logging.getLogger("")
-    custom_logger.setLevel(logging.INFO)
+    if DEBUG:
+        custom_logger.setLevel(logging.DEBUG)
+    else:
+        custom_logger.setLevel(logging.INFO)
     custom_logger.addHandler(handler)
-
-
-def error_handling(message, do_exit=False):
-    error_text = f"ERROR: {message}\n{traceback.format_exc()}"
-    logging.error(error_text)
-    if do_exit:
-        sys.exit(f"Программа завершилась ошибкой\n{error_text}")
 
 
 def get_env():
@@ -29,10 +28,10 @@ def get_env():
     try:
         if GCL is None:
             raise EnvironmentError("Не определена переменная GCL")
-        if GPL is None:
+        if GCP is None:
             raise EnvironmentError("Не определена переменная GPL")
     except EnvironmentError as err:
-        error_handling(str(err), do_exit=True)
+        error_handler(str(err), do_exit=True)
     logging.debug(GCL)
     logging.debug(GCP)
 
@@ -44,3 +43,13 @@ if __name__ == '__main__':
     # Получаем значения переменных с приватными данными
     get_env()
     # TODO Инициализация БД
+    if os.path.isfile('sp.db'):
+        logging.info('База данных sp.db обнаружена')
+    else:
+        logging.error('База данных sp.db не обнаружена')
+        # TODO Сейчас без БД падать не нужно, а далее база должна быть
+        # exit(0)
+        database.init_database()
+
+    db = database.create_connection('sp.db')
+    
