@@ -1,5 +1,4 @@
 import logging
-import urls
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -36,8 +35,8 @@ def parse_sessions(settings, env):
 
         # Открыть страницу sessions
         logging.debug("Открыть страницу sessions")
-        logging.debug(f"link={urls.base_url}")
-        browser.get(urls.base_url)
+        logging.debug("link=https://givin.school/pl/metrika/traffic/visit-list")
+        browser.get("https://givin.school/pl/metrika/traffic/visit-list")
         time.sleep(7)
 
         # Поиск кнопки Добавить условие и выбор в меню Авторизованный
