@@ -6,52 +6,21 @@ from selenium.webdriver.common.keys import Keys
 from error_handling import error_handler as error_handler
 
 
-def parse_sessions(settings, env):
+def parse_sessions_one_day(settings, env):
     logging.info(f"Start parse sessions")
     try:
-        logging.debug(f"headless={settings['headless']}")
-        logging.debug(f"chromedriver_path={settings['chromedriver_path']}")
-        if settings['headless']:
-            chrome_options = webdriver.ChromeOptions()
-            chrome_options.add_argument("--headless")
-            browser = webdriver.Chrome(settings['chromedriver_path'], options=chrome_options)
-        else:
-            browser = webdriver.Chrome(settings['chromedriver_path'])
-        logging.debug(f"browser={browser}")
+        browser = init_webdriver(settings)
 
-        # Login в GetCourse
-        logging.debug("Try login to GetCourse")
-        browser.get("https://givin.school/cms/system/login?required=true")
-        logging.debug("Find input login")
-        input_login = browser.find_element(By.CSS_SELECTOR, "input.form-control.form-field-email")
-        input_login.send_keys(env[0])
-        logging.debug("Find input password")
-        input_password = browser.find_element(By.CSS_SELECTOR, "input.form-control.form-field-password")
-        input_password.send_keys(env[1])
-        logging.debug("Find button ОК")
-        button = browser.find_element(By.CSS_SELECTOR, ".float-row > .btn-success")
-        button.click()
-        time.sleep(5)
+        login_to_getcourse(browser, env)
 
         # Открыть страницу sessions
         logging.debug("Открыть страницу sessions")
         logging.debug("link=https://givin.school/pl/metrika/traffic/visit-list")
         browser.get("https://givin.school/pl/metrika/traffic/visit-list")
-        time.sleep(7)
+        time.sleep(5)
 
-        # Поиск кнопки Добавить условие и выбор в меню Авторизованный
-        logging.debug("Поиск кнопки Добавить условие")
-        button_show_more = browser.find_element(By.CSS_SELECTOR, "button.btn.btn-default.dropdown")
-        button_show_more.click()
-        logging.debug("Поиск поля ввода")
-        search_input = browser.find_element(By.CSS_SELECTOR, "input.search-input")
-        search_input.clear()
-        search_input.send_keys("Ав")  # Авторизованный
-        # search_input.send_keys(Keys.ENTER)  # В этом поле ENTER не срабатывает, нужно кликать на пункт меню
-        logging.debug("Поиск пункта меню Авторизованный")
-        menu_item = browser.find_element(By.CSS_SELECTOR, '[data-type="is_user"]')
-        menu_item.click()
-        # time.sleep(5)
+        filter1_add_conditions(browser)
+        filter3_columns(browser)
 
         # Поиск кнопки Выбрать даты и заполнение полей дат
         logging.debug("Поиск кнопки Выбрать даты")
@@ -73,7 +42,7 @@ def parse_sessions(settings, env):
         input_to.clear()
         input_to.send_keys("01.12.2021")  # по 01.12.2021
         input_to.send_keys(Keys.ENTER)
-        time.sleep(5)
+        # time.sleep(5)
 
         # закрываем браузер после всех манипуляций
         logging.debug("Закрываем браузер после всех манипуляций")
@@ -84,3 +53,76 @@ def parse_sessions(settings, env):
         # закрываем браузер даже в случае ошибки
         browser.quit()
     logging.info(f"End parse sessions")
+
+
+def init_webdriver(settings):
+    logging.debug(f"headless={settings['headless']}")
+    logging.debug(f"chromedriver_path={settings['chromedriver_path']}")
+    if settings['headless']:
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("--headless")
+        browser = webdriver.Chrome(settings['chromedriver_path'], options=chrome_options)
+    else:
+        browser = webdriver.Chrome(settings['chromedriver_path'])
+    logging.debug(f"browser={browser}")
+    return browser
+
+
+def login_to_getcourse(browser, env):
+    # Login в GetCourse
+    logging.debug("Try login to GetCourse")
+    browser.get("https://givin.school/cms/system/login?required=true")
+    logging.debug("Find input login")
+    input_login = browser.find_element(By.CSS_SELECTOR, "input.form-control.form-field-email")
+    input_login.send_keys(env[0])
+    logging.debug("Find input password")
+    input_password = browser.find_element(By.CSS_SELECTOR, "input.form-control.form-field-password")
+    input_password.send_keys(env[1])
+    logging.debug("Find button ОК")
+    button = browser.find_element(By.CSS_SELECTOR, ".float-row > .btn-success")
+    button.click()
+    time.sleep(5)
+
+
+def filter3_columns(browser):
+    # Поиск кнопки Колонки и чекнуть все Колонки
+    logging.debug("Поиск кнопки Колонки")
+    button_columns = browser.find_element(By.CSS_SELECTOR, "div.gc-grouped-selector")
+    button_columns.click()
+    logging.debug("Поиск последнего модального селектора")
+    modal_windows = browser.find_elements(By.CSS_SELECTOR, "div.gc-grouped-selector-settings")
+    last_modal_window = modal_windows[-1]
+    logging.debug("Поиск основного меню и клик по всем пунктам")
+    menus = last_modal_window.find_elements(By.CSS_SELECTOR, "div.li-label")
+    for menu_item in menus:
+        menu_item.click()
+    logging.debug("Клик по всем пунктам")
+    checkboxes = last_modal_window.find_elements(By.TAG_NAME, "input")
+    for checkbox in checkboxes:
+        checked = checkbox.get_attribute('checked')
+        if checked:
+            logging.debug("checked")
+        else:
+            logging.debug("not checked")
+            checkbox.click()
+    logging.debug("Поиск кнопки Apply")
+    apply_buttons = browser.find_elements(By.CSS_SELECTOR, "button.btn.btn-save.btn-success")
+    apply_button = apply_buttons[-1]
+    apply_button.click()
+    # time.sleep(5)
+
+
+def filter1_add_conditions(browser):
+    # Поиск кнопки Добавить условие и выбор в меню Авторизованный
+    logging.debug("Поиск кнопки Добавить условие")
+    button_show_more = browser.find_element(By.CSS_SELECTOR, "button.btn.btn-default.dropdown")
+    button_show_more.click()
+    logging.debug("Поиск поля ввода")
+    search_input = browser.find_element(By.CSS_SELECTOR, "input.search-input")
+    search_input.clear()
+    search_input.send_keys("Ав")  # Авторизованный
+    # search_input.send_keys(Keys.ENTER)  # В этом поле ENTER не срабатывает, нужно кликать на пункт меню
+    logging.debug("Поиск пункта меню Авторизованный")
+    menu_item = browser.find_element(By.CSS_SELECTOR, '[data-type="is_user"]')
+    menu_item.click()
+    # time.sleep(5)

@@ -76,4 +76,4 @@ if __name__ == '__main__':
     logging.info(f"Успешное подключение к {settings['db_file']}")
 
     # TODO Подключаться на сайт и получать данные
-    parser.parse_sessions(settings, env)
+    parser.parse_sessions_one_day(settings, env)
