@@ -21,28 +21,7 @@ def parse_sessions_one_day(settings, env):
 
         filter1_add_conditions(browser)
         filter3_columns(browser)
-
-        # Поиск кнопки Выбрать даты и заполнение полей дат
-        logging.debug("Поиск кнопки Выбрать даты")
-        button_select_dates = browser.find_element(By.CSS_SELECTOR, "span#select2-chosen-4.select2-chosen")
-        button_select_dates.click()
-        logging.debug("Поиск поля ввода и выбор пункта Выбрать даты")
-        search_input = browser.find_element(By.CSS_SELECTOR, "input#s2id_autogen4_search.select2-input")
-        search_input.clear()
-        search_input.send_keys("Выбрать даты")  # Выбрать даты
-        search_input.send_keys(Keys.ENTER)
-        # time.sleep(5)
-        logging.debug("Поиск поля ввода даты С и ввод даты")
-        input_from = browser.find_element(By.CSS_SELECTOR, 'span.from input.form-control')
-        input_from.clear()
-        input_from.send_keys("01.12.2021")  # с 01.12.2021
-        input_from.send_keys(Keys.ENTER)
-        logging.debug("Поиск поля ввода даты ПО и ввод даты")
-        input_to = browser.find_element(By.CSS_SELECTOR, 'span.to input.form-control')
-        input_to.clear()
-        input_to.send_keys("01.12.2021")  # по 01.12.2021
-        input_to.send_keys(Keys.ENTER)
-        # time.sleep(5)
+        filter2_select_dates(browser)
 
         # закрываем браузер после всех манипуляций
         logging.debug("Закрываем браузер после всех манипуляций")
@@ -53,6 +32,30 @@ def parse_sessions_one_day(settings, env):
         # закрываем браузер даже в случае ошибки
         browser.quit()
     logging.info(f"End parse sessions")
+
+
+def filter2_select_dates(browser):
+    # Поиск кнопки Выбрать даты и заполнение полей дат
+    logging.debug("Поиск кнопки Выбрать даты")
+    button_select_dates = browser.find_element(By.CSS_SELECTOR, "span#select2-chosen-4.select2-chosen")
+    button_select_dates.click()
+    logging.debug("Поиск поля ввода и выбор пункта Выбрать даты")
+    search_input = browser.find_element(By.CSS_SELECTOR, "input#s2id_autogen4_search.select2-input")
+    search_input.clear()
+    search_input.send_keys("Выбрать даты")  # Выбрать даты
+    search_input.send_keys(Keys.ENTER)
+    # time.sleep(5)
+    logging.debug("Поиск поля ввода даты С и ввод даты")
+    input_from = browser.find_element(By.CSS_SELECTOR, 'span.from input.form-control')
+    input_from.clear()
+    input_from.send_keys("01.12.2021")  # с 01.12.2021
+    input_from.send_keys(Keys.ENTER)
+    logging.debug("Поиск поля ввода даты ПО и ввод даты")
+    input_to = browser.find_element(By.CSS_SELECTOR, 'span.to input.form-control')
+    input_to.clear()
+    input_to.send_keys("01.12.2021")  # по 01.12.2021
+    input_to.send_keys(Keys.ENTER)
+    # time.sleep(5)
 
 
 def init_webdriver(settings):
