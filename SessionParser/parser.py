@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 from error_handling import error_handler as error_handler
 
 
-def parse_sessions_one_day(settings, env):
+def parse_sessions_one_day(settings, env, filter_date: str):
     logging.info(f"Start parse sessions")
     try:
         browser = init_webdriver(settings)
@@ -14,14 +14,34 @@ def parse_sessions_one_day(settings, env):
         login_to_getcourse(browser, env)
 
         # Открыть страницу sessions
-        logging.debug("Открыть страницу sessions")
+        logging.debug("Открыть страницу Трафик - Сессии")
         logging.debug("link=https://givin.school/pl/metrika/traffic/visit-list")
         browser.get("https://givin.school/pl/metrika/traffic/visit-list")
         time.sleep(5)
 
-        filter1_add_conditions(browser)
-        filter3_columns(browser)
-        filter2_select_dates(browser)
+        filter1_add_conditions(browser)  # Кнопка "Добавить условие" и выбор в меню пункта "Авторизованный"
+        filter3_columns(browser)         # Кнопка "Колонки" и чекнуть все колонки
+        filter2_select_dates(browser, filter_date)    # Кнопка "Выбрать даты" и заполнение полей дат
+
+        # Здесь кликаю по h1 просто чтобы выйти из поля даты
+        logging.debug("Поиск h1")
+        div_h1 = browser.find_element(By.TAG_NAME, "h1")
+        div_h1.click()
+        # time.sleep(5)
+
+        # Поиск кнопки Показать еще. Её нужно кликнуть столько раз чтобы список раскрылся полностью.
+        logging.debug("Поиск кнопки Выбрать даты")
+        count_button_show_more1 = 0
+        list_button_show_more = browser.find_elements(By.CSS_SELECTOR, "a.btn.btn-default")
+        count_button_show_more1 = len(list_button_show_more)
+        logging.debug(f"count_button_show_more = {count_button_show_more}")
+        if count_button_show_more1>0:
+            
+        # button_show_more.click()
+
+
+        # Пауза чтобы рассмотреть результат
+        time.sleep(30)
 
         # закрываем браузер после всех манипуляций
         logging.debug("Закрываем браузер после всех манипуляций")
@@ -34,7 +54,7 @@ def parse_sessions_one_day(settings, env):
     logging.info(f"End parse sessions")
 
 
-def filter2_select_dates(browser):
+def filter2_select_dates(browser, filter_date):
     # Поиск кнопки Выбрать даты и заполнение полей дат
     logging.debug("Поиск кнопки Выбрать даты")
     button_select_dates = browser.find_element(By.CSS_SELECTOR, "span#select2-chosen-4.select2-chosen")
@@ -48,12 +68,12 @@ def filter2_select_dates(browser):
     logging.debug("Поиск поля ввода даты С и ввод даты")
     input_from = browser.find_element(By.CSS_SELECTOR, 'span.from input.form-control')
     input_from.clear()
-    input_from.send_keys("01.12.2021")  # с 01.12.2021
+    input_from.send_keys(filter_date)  # с 01.12.2021
     input_from.send_keys(Keys.ENTER)
     logging.debug("Поиск поля ввода даты ПО и ввод даты")
     input_to = browser.find_element(By.CSS_SELECTOR, 'span.to input.form-control')
     input_to.clear()
-    input_to.send_keys("01.12.2021")  # по 01.12.2021
+    input_to.send_keys(filter_date)  # по 01.12.2021
     input_to.send_keys(Keys.ENTER)
     # time.sleep(5)
 

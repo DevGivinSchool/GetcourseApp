@@ -6,6 +6,7 @@ import database
 import utils
 import parser
 from error_handling import error_handler as error_handler
+import datetime
 
 # Global variables
 DEBUG = True
@@ -74,6 +75,14 @@ if __name__ == '__main__':
     # Соединяемся с БД
     db = database.create_connection(settings['db_file'])
     logging.info(f"Успешное подключение к {settings['db_file']}")
+    with db:
+        # Определить с какой даты начать обработку данных
+        logging.info(f"Определяем последнюю обработанную дату")
+        last_date = database.select_one(db, r"select value from last_date")[0]
+        date_parts = last_date.split('.')
+        next_date = (datetime.datetime(int(date_parts[2]), int(date_parts[1]), int(date_parts[0])) +
+                     datetime.timedelta(days=1)).strftime("%d.%m.%Y")
+        logging.info(f"Последняя обработанная дата: {last_date} следующая обрабатываемая дата: {next_date}")
 
-    # TODO Подключаться на сайт и получать данные
-    parser.parse_sessions_one_day(settings, env)
+        # TODO Подключаться на сайт и получать данные
+        parser.parse_sessions_one_day(settings, env, filter_date=next_date)

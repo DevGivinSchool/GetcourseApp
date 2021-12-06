@@ -12,7 +12,7 @@ def create_connection(db_file):
     """
     conn = None
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         return conn
     except Error as e:
         error_handler(str(e), do_exit=True)
@@ -33,6 +33,20 @@ def create_table(conn, create_table_sql):
         error_handler(str(e), do_exit=True)
 
 
+def select_all(conn, sql_text):
+    c = conn.cursor()
+    c.execute(sql_text)
+    result = c.fetchall()
+    return result
+
+
+def select_one(conn, sql_text):
+    c = conn.cursor()
+    c.execute(sql_text)
+    result = c.fetchone()
+    return result
+
+
 def init_database():
     conn: Connection = None
     try:
@@ -45,8 +59,8 @@ def init_database():
         record = cursor.fetchall()  # record is list of tuples [('3.35.5',)]
         logging.info(f"Версия базы данных SQLite: {record[0][0]}")
 
-        create_table(conn, sql.sql_ct_settings)
-        logging.info("...Создана таблица settings")
+        create_table(conn, sql.sql_ct_last_date)
+        logging.info("...Создана таблица last_date")
         create_table(conn, sql.sql_ct_sessions)
         logging.info("...Создана таблица settings")
 
