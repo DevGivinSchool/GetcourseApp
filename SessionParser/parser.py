@@ -5,6 +5,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from error_handling import error_handler as error_handler
 
+TIMEOUT = 1  # timeout in sec
+
 
 def parse_sessions_one_day(settings, env, filter_date: str):
     logging.info(f"Start parse sessions")
@@ -17,14 +19,14 @@ def parse_sessions_one_day(settings, env, filter_date: str):
         logging.debug("Открыть страницу Трафик - Сессии")
         logging.debug("link=https://givin.school/pl/metrika/traffic/visit-list")
         browser.get("https://givin.school/pl/metrika/traffic/visit-list")
-        time.sleep(5)
+        time.sleep(TIMEOUT)
 
         filter2_select_dates(browser, filter_date)  # Кнопка "Выбрать даты" и заполнение полей дат
-        time.sleep(1)
+        time.sleep(TIMEOUT)
         filter3_columns(browser)  # Кнопка "Колонки" и чекнуть все колонки
-        time.sleep(5)
+        time.sleep(TIMEOUT)
         filter1_add_conditions(browser)  # Кнопка "Добавить условие" и выбор в меню пункта "Авторизованный"
-        time.sleep(10)
+        time.sleep(TIMEOUT)
 
         # Здесь кликаю по h1 просто чтобы выйти из поля даты
         # logging.debug("Поиск h1")
@@ -42,10 +44,11 @@ def parse_sessions_one_day(settings, env, filter_date: str):
                 count_button_show_more2 = count_button_show_more
                 logging.debug(f"Нажимаю на кнопку - {button_show_more.text}")
                 button_show_more.click()
-                time.sleep(5)
+                time.sleep(TIMEOUT)
                 browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(5)
+                time.sleep(TIMEOUT)
                 count_button_show_more, button_show_more = find_button_show_more(browser)
+        time.sleep(TIMEOUT)
 
         # Пауза чтобы рассмотреть результат
         time.sleep(30)
@@ -57,7 +60,7 @@ def parse_sessions_one_day(settings, env, filter_date: str):
         error_handler("Ошибка парсинга страницы", do_exit=True)
     finally:
         # закрываем браузер даже в случае ошибки
-        time.sleep(30)
+        # time.sleep(30)
         browser.quit()
     logging.info(f"End parse sessions")
 
