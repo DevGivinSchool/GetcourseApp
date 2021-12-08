@@ -19,26 +19,33 @@ def parse_sessions_one_day(settings, env, filter_date: str):
         browser.get("https://givin.school/pl/metrika/traffic/visit-list")
         time.sleep(5)
 
+        filter2_select_dates(browser, filter_date)  # Кнопка "Выбрать даты" и заполнение полей дат
+        time.sleep(1)
+        filter3_columns(browser)  # Кнопка "Колонки" и чекнуть все колонки
+        time.sleep(5)
         filter1_add_conditions(browser)  # Кнопка "Добавить условие" и выбор в меню пункта "Авторизованный"
-        filter3_columns(browser)         # Кнопка "Колонки" и чекнуть все колонки
-        filter2_select_dates(browser, filter_date)    # Кнопка "Выбрать даты" и заполнение полей дат
+        time.sleep(10)
 
         # Здесь кликаю по h1 просто чтобы выйти из поля даты
-        logging.debug("Поиск h1")
-        div_h1 = browser.find_element(By.TAG_NAME, "h1")
-        div_h1.click()
-        # time.sleep(5)
+        # logging.debug("Поиск h1")
+        # div_h1 = browser.find_element(By.TAG_NAME, "h1")
+        # div_h1.click()
+        # time.sleep(10)
 
         # Поиск кнопки Показать еще. Её нужно кликнуть столько раз чтобы список раскрылся полностью.
-        logging.debug("Поиск кнопки Выбрать даты")
-        count_button_show_more1 = 0
-        list_button_show_more = browser.find_elements(By.CSS_SELECTOR, "a.btn.btn-default")
-        count_button_show_more1 = len(list_button_show_more)
-        logging.debug(f"count_button_show_more = {count_button_show_more}")
-        if count_button_show_more1>0:
-            
-        # button_show_more.click()
-
+        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        count_button_show_more, button_show_more = find_button_show_more(browser)
+        count_button_show_more2 = 0
+        if count_button_show_more > 0:
+            # Нажимать кнопку Показать еще до тех пор пока не перестанут появлятся её новые экземпляры
+            while count_button_show_more > count_button_show_more2:
+                count_button_show_more2 = count_button_show_more
+                logging.debug(f"Нажимаю на кнопку - {button_show_more.text}")
+                button_show_more.click()
+                time.sleep(5)
+                browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(5)
+                count_button_show_more, button_show_more = find_button_show_more(browser)
 
         # Пауза чтобы рассмотреть результат
         time.sleep(30)
@@ -50,8 +57,27 @@ def parse_sessions_one_day(settings, env, filter_date: str):
         error_handler("Ошибка парсинга страницы", do_exit=True)
     finally:
         # закрываем браузер даже в случае ошибки
+        time.sleep(30)
         browser.quit()
     logging.info(f"End parse sessions")
+
+
+def find_button_show_more(browser):
+    """
+    Поиск кнопки Показать еще.
+    :param browser:
+    :return: Возвращает количество кнопок и самую последнюю из них. Если кнопки нет - 0, None.
+    """
+    logging.debug("Поиск кнопки Показать еще")
+    list_button_show_more = browser.find_elements(By.CSS_SELECTOR, "a.btn.btn-default")
+    count_button_show_more = len(list_button_show_more)
+    logging.debug(f"Количество кнопок Показать еще - {count_button_show_more}")
+    if count_button_show_more == 0:
+        button_show_more = None
+    else:
+        button_show_more = list_button_show_more[-1]
+        logging.debug(f"Кнопка Показать еще - {button_show_more.text}")
+    return count_button_show_more, button_show_more
 
 
 def filter2_select_dates(browser, filter_date):
@@ -63,18 +89,18 @@ def filter2_select_dates(browser, filter_date):
     search_input = browser.find_element(By.CSS_SELECTOR, "input#s2id_autogen4_search.select2-input")
     search_input.clear()
     search_input.send_keys("Выбрать даты")  # Выбрать даты
-    search_input.send_keys(Keys.ENTER)
+    search_input.send_keys(Keys.RETURN)
     # time.sleep(5)
     logging.debug("Поиск поля ввода даты С и ввод даты")
     input_from = browser.find_element(By.CSS_SELECTOR, 'span.from input.form-control')
     input_from.clear()
     input_from.send_keys(filter_date)  # с 01.12.2021
-    input_from.send_keys(Keys.ENTER)
+    input_from.send_keys(Keys.RETURN)
     logging.debug("Поиск поля ввода даты ПО и ввод даты")
     input_to = browser.find_element(By.CSS_SELECTOR, 'span.to input.form-control')
     input_to.clear()
     input_to.send_keys(filter_date)  # по 01.12.2021
-    input_to.send_keys(Keys.ENTER)
+    input_to.send_keys(Keys.RETURN)
     # time.sleep(5)
 
 
