@@ -1,5 +1,6 @@
 import logging
 import time
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -50,6 +51,9 @@ def parse_sessions_one_day(settings, env, filter_date: str):
                 count_button_show_more, button_show_more = find_button_show_more(browser)
         time.sleep(TIMEOUT)
 
+        # Parsing table
+        raw_data = get_raw_data_from_table(browser, filter_date)
+
         # Пауза чтобы рассмотреть результат
         time.sleep(30)
 
@@ -63,6 +67,24 @@ def parse_sessions_one_day(settings, env, filter_date: str):
         # time.sleep(30)
         browser.quit()
     logging.info(f"End parse sessions")
+
+
+def get_raw_data_from_table(browser, filter_date):
+    logging.debug("Парсинг таблицы")
+    table = browser.find_element(By.TAG_NAME, "tbody")
+    # html_table_body = table.get_attribute('innerHTML')
+    # print(f"html_table_body:\n{html_table_body}")
+    table_body = BeautifulSoup(table.get_attribute('innerHTML'))
+    raw_data = []
+    rows = table_body.find_all('tr')
+    for row in rows:
+        cols = row.find_all('td')
+        cols = [ele.text.strip() for ele in cols]
+        raw_data.append([ele for ele in cols if ele])  # Get rid of empty values
+    logging.debug(f"В таблице за {filter_date} всего {len(raw_data)} строк")
+    for line in raw_data:
+        print(line)
+    return raw_data
 
 
 def find_button_show_more(browser):
