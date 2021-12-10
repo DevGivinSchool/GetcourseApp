@@ -6,3 +6,8 @@
 
 ## Документация
 [Selenium with Python](https://selenium-python.readthedocs.io/)
+
+## Update requirements
+```
+pip freeze | Out-File -Encoding UTF8 requirements.txt
+```

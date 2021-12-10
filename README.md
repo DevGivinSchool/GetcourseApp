@@ -6,5 +6,5 @@
 
 ## Update requirements
 ```
-pip freeze > requirements.txt
+pip freeze | Out-File -Encoding UTF8 requirements.txt
 ```
