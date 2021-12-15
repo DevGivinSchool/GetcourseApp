@@ -95,9 +95,10 @@ def get_raw_data_from_table(browser, filter_date) -> List[str]:
         cols = [ele.text.strip() for ele in cols]
         cols2 = [ele for ele in cols if ele]  # Пропуск пустых колонок '' (в самом начале иконка)
 
+        cols2.extend(get_address(address))  # Добавить country, region, city, ip
+        # Столбец со ссылкой на профиль пользователей должен быть последним, так удобнее
         cols2.append(href.rsplit("/", 1)[1])  # Добавить столбец ID Пользователя
         cols2.append(href)  # Добавить столбец ссылку на профиль Пользователя
-        cols2.extend(get_address(address))  # Добавить country, region, city, ip
         raw_data.append(cols2)
     logging.debug(f"В таблице за {filter_date} всего {len(raw_data)} строк")
     for line in raw_data:

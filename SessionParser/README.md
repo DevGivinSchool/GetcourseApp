@@ -42,10 +42,9 @@ start page	Страница старта	'https://givinschoolru.getcourse.ru/pl/
 depth of view	Глубина просмотра	'-- пусто --'
 there is an order	Есть заказ	'-- пусто --'
 there is an order	Есть заказ	'-- пусто --'
-user_id	ID Полльзователя	59947508'
-user_url	Сылка на профиль Пользователя	/user/control/user/update/id/59947508'
 country	Страна	RU'
 region	Регион	Краснодарский край'
 city	Город	Туапсе'
 ip	IP адрес	188.43.12.65'
-
+user_id	ID Полльзователя	59947508'
+user_url	Сылка на профиль Пользователя	/user/control/user/update/id/59947508'
