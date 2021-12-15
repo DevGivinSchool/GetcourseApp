@@ -54,7 +54,10 @@ def parse_sessions_one_day(settings, env, filter_date: str):
 
         # Parsing table
         raw_data = get_raw_data_from_table(browser, filter_date)
-        # TODO 2) Распарсить контакт (узнать его email + telegram если они есть)
+        # TODO 2) Распарсить контакт (узнать его email + telegram если они есть).
+        #         Сходить на страницу пользователя и взять данные оттуда.
+        #         Нужно проверять что такой пользователь уже обрабатывался, чтобы не парсить лишнего.
+        #         Делать это лучше через кэш в памяти = словарь, а уж потом лезть в БД.
         # TODO 3) Занести даннные в БД (нужно возвращать набор данных, а вышестоящая процедура это делает)
         # TODO 4) Вынести login_to_getcourse и init_webdriver из этой процедуры parse_sessions_one_day
 
