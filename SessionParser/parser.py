@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from error_handling import error_handler as error_handler
+from typing import List
 
 TIMEOUT = 1  # timeout in sec
 
@@ -53,6 +54,9 @@ def parse_sessions_one_day(settings, env, filter_date: str):
 
         # Parsing table
         raw_data = get_raw_data_from_table(browser, filter_date)
+        # TODO 2) Распарсить контакт (узнать его email + telegram если они есть)
+        # TODO 3) Занести даннные в БД (нужно возвращать набор данных, а вышестоящая процедура это делает)
+        # TODO 4) Вынести login_to_getcourse и init_webdriver из этой процедуры parse_sessions_one_day
 
         # Пауза чтобы рассмотреть результат
         time.sleep(30)
@@ -69,7 +73,7 @@ def parse_sessions_one_day(settings, env, filter_date: str):
     logging.info(f"End parse sessions")
 
 
-def get_raw_data_from_table(browser, filter_date):
+def get_raw_data_from_table(browser, filter_date) -> List[str]:
     logging.debug("Парсинг таблицы")
     table = browser.find_element(By.TAG_NAME, "tbody")
     # html_table_body = table.get_attribute('innerHTML')
@@ -78,13 +82,60 @@ def get_raw_data_from_table(browser, filter_date):
     raw_data = []
     rows = table_body.find_all('tr')
     for row in rows:
-        cols = row.find_all('td')
+        cols = row.find_all('td')  # <class 'bs4.element.ResultSet'>
+        if len(cols) != 30:  # Пропуск кнопок "Показать еще", они в этой же таблице
+            continue
+
+        href = cols[13].find('a').get('href')  # <class 'bs4.element.Tag'> Получить ссылку на профиль Пользователя
+        address = cols[3].text.strip()  # что-то типа 'RU, Калининградская область, Калининград 83.219.136.214'
+
         cols = [ele.text.strip() for ele in cols]
-        raw_data.append([ele for ele in cols if ele])  # Get rid of empty values
+        cols2 = [ele for ele in cols if ele]  # Пропуск пустых колонок '' (в самом начале иконка)
+
+        cols2.append(href.rsplit("/", 1)[1])  # Добавить столбец ID Пользователя
+        cols2.append(href)  # Добавить столбец ссылку на профиль Пользователя
+        cols2.extend(get_address(address))  # Добавить country, region, city, ip
+        raw_data.append(cols2)
     logging.debug(f"В таблице за {filter_date} всего {len(raw_data)} строк")
     for line in raw_data:
-        print(line)
+        logging.debug(line)
     return raw_data
+
+
+def get_address(address_str):
+    """
+    Преобразовать строку адреса в List[country, region, city, ip].
+    Количество адресных элементов в address_str может быть разным!
+    :param address_str: 'RU, Калининградская область, Калининград 83.219.136.214'
+    :return:
+    """
+    country = region = city = ip = None
+    address_list = address_str.split(", ")
+    match len(address_list):
+        case 1:  # RU 85.249.173.163
+            temp2 = address_list[0].split(" ")
+            country = temp2[0]
+            region = '-- пусто --'
+            city = '-- пусто --'
+            ip = temp2[1]
+        case 2:  # CY, Лимасол 62.228.31.136
+            temp2 = address_list[1].split(" ")
+            country = address_list[0]
+            region = '-- пусто --'
+            city = temp2[0]
+            ip = temp2[1]
+        case 3:  # RU, Краснодарский край, Сочи 185.15.61.154
+            temp2 = address_list[2].split(" ")
+            country = address_list[0]
+            region = address_list[1]
+            city = temp2[0]
+            ip = temp2[1]
+        case _:
+            try:
+                raise ValueError(f"В адрес: '{address_str}' нестандартное количество элементов: {len(address_list)}")
+            except ValueError as err:
+                error_handler(str(err), do_exit=True)
+    return [country, region, city, ip]
 
 
 def find_button_show_more(browser):

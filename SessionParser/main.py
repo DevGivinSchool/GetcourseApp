@@ -78,7 +78,11 @@ if __name__ == '__main__':
     with db:
         # Определить с какой даты начать обработку данных
         logging.info(f"Определяем последнюю обработанную дату")
-        last_date = database.select_one(db, r"select value from last_date")[0]
+
+        # TODO пока для отладки дату не из БД беру а прямо здесь
+        # last_date = database.select_one(db, r"select value from last_date")[0]
+        last_date = '19.11.2019'
+
         date_parts = last_date.split('.')
         next_date = (datetime.datetime(int(date_parts[2]), int(date_parts[1]), int(date_parts[0])) +
                      datetime.timedelta(days=1)).strftime("%d.%m.%Y")
