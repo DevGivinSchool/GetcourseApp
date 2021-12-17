@@ -86,7 +86,8 @@ if __name__ == '__main__':
         date_parts = last_date.split('.')
         next_date = (datetime.datetime(int(date_parts[2]), int(date_parts[1]), int(date_parts[0])) +
                      datetime.timedelta(days=1)).strftime("%d.%m.%Y")
-        logging.info(f"Последняя обработанная дата: {last_date} следующая обрабатываемая дата: {next_date}")
+        logging.info(f"Найдена последняя обработанная дата: {last_date} начинаем обработку с: {next_date}")
 
         # TODO Подключаться на сайт и получать данные
-        parser.parse_sessions_one_day(settings, env, filter_date=next_date)
+        dict_cache = {}  # Кэш обрабатываемых пользователей в памяти
+        parser.parse_sessions_one_day(settings, env, dict_cache, filter_date=next_date)

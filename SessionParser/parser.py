@@ -10,8 +10,8 @@ from typing import List
 TIMEOUT = 1  # timeout in sec
 
 
-def parse_sessions_one_day(settings, env, filter_date: str):
-    logging.info(f"Start parse sessions")
+def parse_sessions_one_day(settings, env, dict_cache, filter_date: str):
+    logging.info(f"Start parse date {filter_date}")
     try:
         browser = init_webdriver(settings)
 
@@ -54,11 +54,13 @@ def parse_sessions_one_day(settings, env, filter_date: str):
 
         # Parsing table
         raw_data = get_raw_data_from_table(browser, filter_date)
-        # TODO 2) Распарсить контакт (узнать его email + telegram если они есть).
-        #         Сходить на страницу пользователя и взять данные оттуда.
-        #         Нужно проверять что такой пользователь уже обрабатывался, чтобы не парсить лишнего.
-        #         Делать это лучше через кэш в памяти = словарь, а уж потом лезть в БД.
+        # Users processing (парсинг страницы пользователя)
+        users_processing(browser, dict_cache, raw_data)
+
         # TODO 3) Занести даннные в БД (нужно возвращать набор данных, а вышестоящая процедура это делает)
+        for line in raw_data:
+            print(line)
+
         # TODO 4) Вынести login_to_getcourse и init_webdriver из этой процедуры parse_sessions_one_day
 
         # Пауза чтобы рассмотреть результат
@@ -73,7 +75,95 @@ def parse_sessions_one_day(settings, env, filter_date: str):
         # закрываем браузер даже в случае ошибки
         # time.sleep(30)
         browser.quit()
-    logging.info(f"End parse sessions")
+    logging.info(f"End parse date")
+
+
+def users_processing(browser, dict_cache, raw_data):
+    for line in raw_data:
+        user = line[12]  # Пользователь
+        logging.debug(f"Обработка пользователя {user}")
+        email = telegram = country = city = '-- пусто --'
+        if user in dict_cache:
+            logging.debug(f"Пользователь {user} найден в кэше")
+            email = dict_cache[user][0]
+            telegram = dict_cache[user][1]
+            country = dict_cache[user][2]
+            city = dict_cache[user][3]
+        else:
+            link = f"https://givin.school{line[-1]}"
+            logging.debug(f"Обработка страницы - {link}")
+            try:
+                browser.get(link)
+                # logging.debug(f"browser.title\n{browser.title}")
+                # logging.debug(f"browser.page_source\n{browser.page_source}")
+                if browser.title == "GetCourse - Error Default":
+                    # У некоторых пользователей страница не находится, и возвращается стандартная страница Геткурса
+                    dict_cache[user] = (email, telegram, country, city)
+                    line.append(email)
+                    line.append(telegram)
+                    line.append(country)
+                    line.append(city)
+                    logging.error(f"ERROR: Getcourse вернул стандартную страницу ошибки 404")
+                    continue
+            except Exception:  # noqa: E722
+                dict_cache[user] = (email, telegram, country, city)
+                line.append(email)
+                line.append(telegram)
+                line.append(country)
+                line.append(city)
+                error_handler(f"Ошибка парсинга страницы {link}", do_exit=False)
+                continue
+            time.sleep(TIMEOUT)
+
+            # Поиск email
+            logging.debug("Поиск email")
+            email_element = browser.find_element(By.CSS_SELECTOR, "div.user-email")
+            email = email_element.text
+            if len(email) <= 0:
+                logging.warning(f"email не найден")
+                email = '-- пусто --'
+            else:
+                logging.debug(f"email={email}")
+
+            # Поиск telegram
+            logging.debug("Поиск telegram")
+            telegram_element = browser.find_element(By.CSS_SELECTOR, "#field-input-282415")
+            telegram = telegram_element.get_attribute("value")
+            if len(telegram) <= 0:
+                logging.warning(f"telegram не найден")
+                telegram = '-- пусто --'
+            else:
+                if not telegram.startswith("@"):
+                    telegram = f"@{telegram}"
+                logging.debug(f"telegram={telegram}")
+
+            # Поиск Страна
+            logging.debug("Поиск Страна")
+            country_element = browser.find_element(By.CSS_SELECTOR, "#User_country")
+            country = country_element.get_attribute("value")
+            if len(country) <= 0:
+                logging.warning(f"country не найден")
+                country = '-- пусто --'
+            else:
+                logging.debug(f"country={country}")
+
+            # Поиск Город
+            logging.debug("Поиск Город")
+            city_element = browser.find_element(By.CSS_SELECTOR, "#User_city")
+            city = city_element.get_attribute("value")
+            if len(city) <= 0:
+                logging.warning(f"city не найден")
+                city = '-- пусто --'
+            else:
+                logging.debug(f"city={city}")
+
+            dict_cache[user] = (email, telegram, country, city)  # add user to cache
+
+        line.append(email)
+        line.append(telegram)
+        line.append(country)
+        line.append(city)
+    logging.debug(f"dict_cache\n{dict_cache}")
 
 
 def get_raw_data_from_table(browser, filter_date) -> List[str]:
