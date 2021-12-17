@@ -5,8 +5,8 @@ import os
 import database
 import utils
 import parser
-from error_handling import error_handler as error_handler
 import datetime
+from error_handling import error_handler as error_handler
 
 # Global variables
 DEBUG = True
@@ -88,6 +88,8 @@ if __name__ == '__main__':
                      datetime.timedelta(days=1)).strftime("%d.%m.%Y")
         logging.info(f"Найдена последняя обработанная дата: {last_date} начинаем обработку с: {next_date}")
 
-        # TODO Подключаться на сайт и получать данные
+        # Подключаться на сайт и получать данные
         dict_cache = {}  # Кэш обрабатываемых пользователей в памяти
-        parser.parse_sessions_one_day(settings, env, dict_cache, filter_date=next_date)
+        browser = parser.init_webdriver(settings)
+        parser.login_to_getcourse(browser, env)
+        parser.parse_sessions_one_day(settings, env, dict_cache, browser, filter_date=next_date)

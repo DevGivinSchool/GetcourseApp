@@ -10,13 +10,9 @@ from typing import List
 TIMEOUT = 1  # timeout in sec
 
 
-def parse_sessions_one_day(settings, env, dict_cache, filter_date: str):
+def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str):
     logging.info(f"Start parse date {filter_date}")
     try:
-        browser = init_webdriver(settings)
-
-        login_to_getcourse(browser, env)
-
         # Открыть страницу sessions
         logging.debug("Открыть страницу Трафик - Сессии")
         logging.debug("link=https://givin.school/pl/metrika/traffic/visit-list")
@@ -54,14 +50,12 @@ def parse_sessions_one_day(settings, env, dict_cache, filter_date: str):
 
         # Parsing table
         raw_data = get_raw_data_from_table(browser, filter_date)
-        # Users processing (парсинг страницы пользователя)
+        # Users processing (парсинг страницы пользователя) дополняет данными raw_data
         users_processing(browser, dict_cache, raw_data)
 
         # TODO 3) Занести даннные в БД (нужно возвращать набор данных, а вышестоящая процедура это делает)
         for line in raw_data:
             print(line)
-
-        # TODO 4) Вынести login_to_getcourse и init_webdriver из этой процедуры parse_sessions_one_day
 
         # Пауза чтобы рассмотреть результат
         time.sleep(30)
