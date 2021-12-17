@@ -63,7 +63,7 @@ if __name__ == '__main__':
     except ValueError as err:
         error_handler(str(err), do_exit=True)
 
-    # TODO Инициализация БД
+    # Инициализация БД
     if os.path.isfile(settings['db_file']):
         logging.info(f"База данных {settings['db_file']} обнаружена")
     else:

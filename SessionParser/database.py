@@ -29,7 +29,7 @@ def create_table(conn, create_table_sql):
     try:
         c = conn.cursor()
         c.execute(create_table_sql)
-    except Error as e:
+    except Exception as e:
         error_handler(str(e), do_exit=True)
 
 
