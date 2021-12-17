@@ -80,27 +80,34 @@ if __name__ == '__main__':
     with db:
         # Определить с какой даты начать обработку данных
         logging.info(f"Определяем последнюю обработанную дату")
-
         # Для отладки берётся один день не из БД
         if DEBUG_ONE_DAY:
             last_date = '19.11.2019'
         else:
             last_date = database.select_one(db, r"select value from last_date")[0]
-
         date_parts = last_date.split('.')
-        next_date = (datetime.datetime(int(date_parts[2]), int(date_parts[1]), int(date_parts[0])) +
-                     datetime.timedelta(days=1)).strftime("%d.%m.%Y")
-        logging.info(f"Найдена последняя обработанная дата: {last_date} начинаем обработку с: {next_date}")
+        # Вычисляем дату с которой начнётся обработка
+        cur_date = (datetime.date(int(date_parts[2]), int(date_parts[1]), int(date_parts[0])) +
+                    datetime.timedelta(days=1))
+        cur_date_txt = cur_date.strftime("%d.%m.%Y")
+        logging.info(f"Последняя обработанная дата (last_date): {last_date} начинаем обработку с: {cur_date_txt}")
+        # Конечная дата (по умолчанию это сегодня). Но само сегодня обрабатывать не нужно, т.к. день еще не закончился.
+        end_date = datetime.date.today() - datetime.timedelta(days=1)
+        logging.info(f"Дата окончания обработки (end_date): {end_date.strftime('%d.%m.%Y')}")
 
-        # Подключаться на сайт и получать данные
         if not DEBUG_DB:
             dict_cache = {}  # Кэш обрабатываемых пользователей в памяти
             browser = parser.init_webdriver(settings)
             parser.login_to_getcourse(browser, env)
-            raw_data = parser.parse_sessions_one_day(settings, env, dict_cache, browser, filter_date=next_date)
+        while cur_date <= end_date:
+            # Подключаться на сайт и получать данные
+            if not DEBUG_DB:
+                raw_data = parser.parse_sessions_one_day(settings, env, dict_cache, browser, filter_date=cur_date_txt)
+            # Вносим полученные данные в БД
+            if DEBUG_DB:
+                # Для отладки берём данные из data_set.py
+                import data_set
+                raw_data = data_set.data_set
+            database.fill_sessions_table(db, raw_data, last_date)
 
-        # Вносим полученные данные в БД
-        if DEBUG_DB:
-            import data_set
-            raw_data = data_set.data_set
-        database.fill_sessions_table(db, raw_data, last_date)
+            cur_date = cur_date + datetime.timedelta(days=1)
