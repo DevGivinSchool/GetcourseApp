@@ -62,7 +62,7 @@ def init_database():
         create_table(conn, sql.sql_ct_last_date)
         logging.info("...Создана таблица last_date")
         create_table(conn, sql.sql_ct_sessions)
-        logging.info("...Создана таблица settings")
+        logging.info("...Создана таблица sessions")
 
         cursor.close()
 
@@ -72,3 +72,29 @@ def init_database():
         if conn:
             conn.close()
             logging.debug("Соединение с БД закрыто")
+
+
+def fill_sessions_table(conn, raw_data, last_date):
+    data = []
+    for line in raw_data:
+        data.append(tuple(line))
+    conn.isolation_level = None
+    c = conn.cursor()
+    c.execute("begin")
+    try:
+        # Fill the table
+        c.executemany("insert into sessions (visit_id,start_of_visit,ip,traffic_type,channel,depth_of_view1,"
+                      "visit_number,visitor_id,device,login_page,entrance_address,login_referrer,user,order1,"
+                      "channel_group,expense_group_1,expense_group_2,campaign,utm_medium,utm_source,keyword,"
+                      "utm_content,referrer_significant_domain,referrer_domain,referrer,start_page,depth_of_view2,"
+                      "there_is_an_order_1,there_is_an_order_2,country,region,city,ip2,user_id,user_url,user_email,"
+                      "user_telegram,user_country,user_city) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,"
+                      "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", data)
+        c.execute("insert into last_date (value) values (?)", (last_date,))
+        c.execute("commit")
+    except conn.Error as e:
+        c.execute("rollback")
+        error_handler(str(e), do_exit=True)
+    # Print the table contents
+    # for row in c.execute("select * from sessions"):
+    #     print(row)

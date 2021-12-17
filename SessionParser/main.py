@@ -10,6 +10,8 @@ from error_handling import error_handler as error_handler
 
 # Global variables
 DEBUG = True
+DEBUG_ONE_DAY = True
+DEBUG_DB = True
 
 
 def config_logging():
@@ -79,9 +81,11 @@ if __name__ == '__main__':
         # Определить с какой даты начать обработку данных
         logging.info(f"Определяем последнюю обработанную дату")
 
-        # TODO пока для отладки дату не из БД беру а прямо здесь
-        # last_date = database.select_one(db, r"select value from last_date")[0]
-        last_date = '19.11.2019'
+        # Для отладки берётся один день не из БД
+        if DEBUG_ONE_DAY:
+            last_date = '19.11.2019'
+        else:
+            last_date = database.select_one(db, r"select value from last_date")[0]
 
         date_parts = last_date.split('.')
         next_date = (datetime.datetime(int(date_parts[2]), int(date_parts[1]), int(date_parts[0])) +
@@ -89,7 +93,14 @@ if __name__ == '__main__':
         logging.info(f"Найдена последняя обработанная дата: {last_date} начинаем обработку с: {next_date}")
 
         # Подключаться на сайт и получать данные
-        dict_cache = {}  # Кэш обрабатываемых пользователей в памяти
-        browser = parser.init_webdriver(settings)
-        parser.login_to_getcourse(browser, env)
-        parser.parse_sessions_one_day(settings, env, dict_cache, browser, filter_date=next_date)
+        if not DEBUG_DB:
+            dict_cache = {}  # Кэш обрабатываемых пользователей в памяти
+            browser = parser.init_webdriver(settings)
+            parser.login_to_getcourse(browser, env)
+            raw_data = parser.parse_sessions_one_day(settings, env, dict_cache, browser, filter_date=next_date)
+
+        # Вносим полученные данные в БД
+        if DEBUG_DB:
+            import data_set
+            raw_data = data_set.data_set
+        database.fill_sessions_table(db, raw_data, last_date)

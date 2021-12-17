@@ -12,6 +12,7 @@ TIMEOUT = 1  # timeout in sec
 
 def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str):
     logging.info(f"Start parse date {filter_date}")
+    raw_data = None
     try:
         # Открыть страницу sessions
         logging.debug("Открыть страницу Трафик - Сессии")
@@ -53,12 +54,8 @@ def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str)
         # Users processing (парсинг страницы пользователя) дополняет данными raw_data
         users_processing(browser, dict_cache, raw_data)
 
-        # TODO 3) Занести даннные в БД (нужно возвращать набор данных, а вышестоящая процедура это делает)
-        for line in raw_data:
-            print(line)
-
         # Пауза чтобы рассмотреть результат
-        time.sleep(30)
+        # time.sleep(30)
 
         # закрываем браузер после всех манипуляций
         logging.debug("Закрываем браузер после всех манипуляций")
@@ -69,6 +66,9 @@ def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str)
         # закрываем браузер даже в случае ошибки
         # time.sleep(30)
         browser.quit()
+
+    return raw_data
+
     logging.info(f"End parse date")
 
 
