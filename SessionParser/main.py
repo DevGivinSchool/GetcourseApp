@@ -49,6 +49,7 @@ def get_env():
 
 
 if __name__ == '__main__':
+    mine_time = datetime.datetime.now()
     # Конфигурируем формат логирования
     config_logging()
     logging.info('SessionParser start')
@@ -99,7 +100,9 @@ if __name__ == '__main__':
             dict_cache = {}  # Кэш обрабатываемых пользователей в памяти
             browser = parser.init_webdriver(settings)
             parser.login_to_getcourse(browser, env)
+        i = 0
         while cur_date <= end_date:
+            start_time = datetime.datetime.now()
             # Подключаться на сайт и получать данные
             if not DEBUG_DB:
                 raw_data = parser.parse_sessions_one_day(settings, env, dict_cache, browser, filter_date=cur_date_txt)
@@ -111,3 +114,8 @@ if __name__ == '__main__':
             database.fill_sessions_table(db, raw_data, last_date)
 
             cur_date = cur_date + datetime.timedelta(days=1)
+
+            logging.info(f"Обработан {i} день {cur_date_txt} за {datetime.datetime.now() - start_time} сек.")
+            i = i + 1
+
+    logging.info(f"Всего затрачено времени: {datetime.datetime.now() - mine_time} сек.")
