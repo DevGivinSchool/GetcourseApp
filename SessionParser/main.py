@@ -133,6 +133,7 @@ if __name__ == '__main__':
                 import data_set
 
                 raw_data = data_set.data_set
+
             database.fill_sessions_table(db, raw_data, cur_date.cur_date_txt)
 
             logging.info(f"===> Обработан {i} день {cur_date.cur_date_txt} "

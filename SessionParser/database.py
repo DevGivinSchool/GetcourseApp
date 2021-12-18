@@ -79,20 +79,25 @@ def init_database():
 
 def fill_sessions_table(conn, raw_data, last_date):
     data = []
+    # visit_id = ''
     for line in raw_data:
+        # logging.debug(f"{line}")
+        # visit_id = f"{visit_id},'{line[0]}'"
         data.append(tuple(line))
+    # logging.debug(f"visit_id={visit_id}")
     conn.isolation_level = None
     c = conn.cursor()
-    c.execute("begin")
     try:
         # Fill the table
-        c.executemany("insert into sessions (visit_id,start_of_visit,ip,traffic_type,channel,depth_of_view1,"
-                      "visit_number,visitor_id,device,login_page,entrance_address,login_referrer,user,order1,"
-                      "channel_group,expense_group_1,expense_group_2,campaign,utm_medium,utm_source,keyword,"
-                      "utm_content,referrer_significant_domain,referrer_domain,referrer,start_page,depth_of_view2,"
-                      "there_is_an_order_1,there_is_an_order_2,country,region,city,ip2,user_id,user_url,user_email,"
-                      "user_telegram,user_country,user_city,user_phone) values "
-                      "(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", data)
+        c.execute("begin")
+        if len(raw_data) != 0:
+            c.executemany("insert into sessions (visit_id,start_of_visit,ip,traffic_type,channel,depth_of_view1,"
+                          "visit_number,visitor_id,device,login_page,entrance_address,login_referrer,user,order1,"
+                          "channel_group,expense_group_1,expense_group_2,campaign,utm_medium,utm_source,keyword,"
+                          "utm_content,referrer_significant_domain,referrer_domain,referrer,start_page,depth_of_view2,"
+                          "there_is_an_order_1,there_is_an_order_2,country,region,city,ip2,user_id,user_url,user_email,"
+                          "user_telegram,user_country,user_city,user_phone) values "
+                          "(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", data)
         c.execute("update last_date set value = ? where id=1", (last_date,))
         c.execute("commit")
     except conn.Error as e:

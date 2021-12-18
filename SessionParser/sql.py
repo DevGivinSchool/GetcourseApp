@@ -2,9 +2,10 @@
 sql_ct_last_date = "CREATE TABLE last_date (id INTEGER, value TEXT)"
 
 # create table sessions
+# ВНИМАНИЕ: Поле visit_id не уникальное!!!
 sql_ct_sessions = """
 CREATE TABLE "sessions" (
-	"visit_id"	INTEGER NOT NULL UNIQUE,
+	"visit_id",
 	"start_of_visit",
 	"ip",
 	"traffic_type",
@@ -43,6 +44,5 @@ CREATE TABLE "sessions" (
 	"user_telegram",
 	"user_country",
 	"user_city",
-	"user_phone",
-	PRIMARY KEY("visit_id")
+	"user_phone"
 )"""

@@ -7,7 +7,9 @@ from selenium.webdriver.common.keys import Keys
 from error_handling import error_handler as error_handler
 from typing import List
 
-TIMEOUT = 1  # timeout in sec
+TIMEOUT = 3  # timeout in sec
+selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {"method":"css selector","selector":"div.user-email"
+Можно попробовать увеличить параметр `TIMEOUT = 1  # timeout in sec` в файле `parser.py`.
 
 
 def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str):
@@ -51,8 +53,9 @@ def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str)
 
         # Parsing table
         raw_data = get_raw_data_from_table(browser, filter_date)
-        # Users processing (парсинг страницы пользователя) дополняет данными raw_data
-        users_processing(browser, dict_cache, raw_data)
+        if len(raw_data) != 0:
+            # Users processing (парсинг страницы пользователя) дополняет данными raw_data
+            users_processing(browser, dict_cache, raw_data)
 
         # Пауза чтобы рассмотреть результат
         # time.sleep(30)
@@ -170,7 +173,12 @@ def users_processing(browser, dict_cache, raw_data):
 
 def get_raw_data_from_table(browser, filter_date) -> List[str]:
     logging.debug("Парсинг таблицы")
-    table = browser.find_element(By.TAG_NAME, "tbody")
+    # В какие-то дни нет посещений и таблицы нет
+    try:
+        table = browser.find_element(By.TAG_NAME, "tbody")
+    except:  # noqa: E722
+        logging.warning(f"В эту дату {filter_date} посещений не было")
+        return []
     # html_table_body = table.get_attribute('innerHTML')
     # print(f"html_table_body:\n{html_table_body}")
     table_body = BeautifulSoup(table.get_attribute('innerHTML'))

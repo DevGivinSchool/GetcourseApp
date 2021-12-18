@@ -4,6 +4,14 @@
 Данные session начинаются с 2019-05-18 17:29:52 (18.05.2019)  
 Дата для тестирования - 19.11.2019  
 
+## Ошибки
+### Ошибка: Какой-то элемент CSS не найден на странице
+```python
+email_element = browser.find_element(By.CSS_SELECTOR, "div.user-email")
+selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {"method":"css selector","selector":"div.user-email"
+```
+Можно попробовать увеличить параметр `TIMEOUT = 1  # timeout in sec` в файле `parser.py`.  
+
 ## Документация
 [Selenium with Python](https://selenium-python.readthedocs.io/)
 [BeautifulSoup 4](https://www.crummy.com/software/BeautifulSoup/bs4/doc.ru/index.html)
@@ -52,3 +60,4 @@ user_email	email профиль пользователя	email@mail.ru
 user_telegram	telegram профиль пользователя	@telegram
 user_country	country профиль пользователя	Россия
 user_city	city профиль пользователя	Сочи
+user_phone  phone   Телефон пользователя
