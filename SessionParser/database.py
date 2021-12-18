@@ -63,9 +63,9 @@ def init_database():
         logging.info("...Создана таблица last_date")
         create_table(conn, sql.sql_ct_sessions)
         logging.info("...Создана таблица sessions")
-        cursor.execute("insert into last_date (value) values (?)", ('17.05.2019',))
-        cursor.execute("commit")
-        logging.info("...Выполнен insert into last_date (value) values ('17.05.2019')")
+        cursor.execute("insert into last_date (id, value) values (?,?)", (1, '17.05.2019',))
+        conn.commit()
+        logging.info("...Выполнен insert into last_date (id, value) values (1, '17.05.2019')")
 
         cursor.close()
 
@@ -91,9 +91,9 @@ def fill_sessions_table(conn, raw_data, last_date):
                       "channel_group,expense_group_1,expense_group_2,campaign,utm_medium,utm_source,keyword,"
                       "utm_content,referrer_significant_domain,referrer_domain,referrer,start_page,depth_of_view2,"
                       "there_is_an_order_1,there_is_an_order_2,country,region,city,ip2,user_id,user_url,user_email,"
-                      "user_telegram,user_country,user_city,user_phone) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,"
-                      "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", data)
-        c.execute("insert into last_date (value) values (?)", (last_date,))
+                      "user_telegram,user_country,user_city,user_phone) values "
+                      "(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", data)
+        c.execute("update last_date set value = ? where id=1", (last_date,))
         c.execute("commit")
     except conn.Error as e:
         c.execute("rollback")

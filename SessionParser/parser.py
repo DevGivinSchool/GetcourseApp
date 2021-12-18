@@ -57,20 +57,13 @@ def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str)
         # Пауза чтобы рассмотреть результат
         # time.sleep(30)
 
-        # закрываем браузер после всех манипуляций
-        logging.debug("Закрываем браузер после всех манипуляций")
-        browser.quit()
     except Exception as e:  # noqa: E722
-        error_handler("Ошибка парсинга страницы", do_exit=True)
-    finally:
-        # закрываем браузер даже в случае ошибки
-        # time.sleep(30)
         browser.quit()
+        error_handler("Ошибка парсинга страницы", do_exit=True)
 
     logging.info(f"End parse date")
+
     return raw_data
-
-
 
 
 def users_processing(browser, dict_cache, raw_data):
@@ -100,7 +93,7 @@ def users_processing(browser, dict_cache, raw_data):
                     line.append(country)
                     line.append(city)
                     line.append(phone)
-                    logging.error(f"ERROR: Getcourse вернул стандартную страницу ошибки 404")
+                    logging.warning(f"WARNING: Getcourse вернул стандартную страницу ошибки 404")
                     continue
             except Exception:  # noqa: E722
                 dict_cache[user] = (email, telegram, country, city, phone)

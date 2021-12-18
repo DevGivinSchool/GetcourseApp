@@ -1,5 +1,5 @@
 # create table settings
-sql_ct_last_date = "CREATE TABLE last_date (value)"
+sql_ct_last_date = "CREATE TABLE last_date (id INTEGER, value TEXT)"
 
 # create table sessions
 sql_ct_sessions = """

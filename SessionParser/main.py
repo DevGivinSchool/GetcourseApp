@@ -48,6 +48,19 @@ def get_env():
     return env
 
 
+class CurDate:
+    def __init__(self, cur_date_):
+        self.cur_date = cur_date_
+        self.cur_date_txt = self.cur_date.strftime("%d.%m.%Y")
+
+    def __str__(self):
+        return self.cur_date_txt
+
+    def add_day(self):
+        self.cur_date = self.cur_date + datetime.timedelta(days=1)
+        self.cur_date_txt = self.cur_date.strftime("%d.%m.%Y")
+
+
 if __name__ == '__main__':
     mine_time = datetime.datetime.now()
     # Конфигурируем формат логирования
@@ -88,7 +101,7 @@ if __name__ == '__main__':
         logging.info(f"Определяем последнюю обработанную дату")
         # Для отладки берётся один день не из БД
         if DEBUG_ONE_DAY:
-            last_date = datetime.datetime.strptime('19.11.2019', "%d.%m.%Y")
+            last_date = datetime.datetime.strptime('19.11.2019', "%d.%m.%Y").date()
             end_date = last_date + datetime.timedelta(days=1)
         else:
             last_date = database.select_one(db, r"select value from last_date")[0]
@@ -96,10 +109,9 @@ if __name__ == '__main__':
             # Конечная дата (по умолчанию это сегодня). Но само сегодня обрабатывать не нужно, т.к. день еще не закончился.
             end_date = datetime.date.today() - datetime.timedelta(days=1)
         # Вычисляем дату с которой начнётся обработка
-        cur_date = last_date + datetime.timedelta(days=1)
-        cur_date_txt = cur_date.strftime("%d.%m.%Y")
+        cur_date = CurDate(last_date + datetime.timedelta(days=1))
         logging.info(
-            f"Последняя обработанная дата (last_date): {last_date.strftime('%d.%m.%Y')} начинаем обработку с: {cur_date_txt}")
+            f"Последняя обработанная дата (last_date): {last_date.strftime('%d.%m.%Y')} начинаем обработку с: {cur_date}")
         logging.info(f"Дата окончания обработки (end_date): {end_date.strftime('%d.%m.%Y')}\n")
 
         logging.info('Начинаем обработку данных\n')
@@ -108,22 +120,24 @@ if __name__ == '__main__':
             browser = parser.init_webdriver(settings)
             parser.login_to_getcourse(browser, env)
         i = 1
-        while cur_date <= end_date:
+        while cur_date.cur_date <= end_date:
             logging.info(f'Обрабатывается день {i}')
             start_time = datetime.datetime.now()
             # Подключаться на сайт и получать данные
             if not DEBUG_DB:
-                raw_data = parser.parse_sessions_one_day(settings, env, dict_cache, browser, filter_date=cur_date_txt)
+                raw_data = parser.parse_sessions_one_day(settings, env, dict_cache, browser,
+                                                         filter_date=cur_date.cur_date_txt)
             # Вносим полученные данные в БД
             if DEBUG_DB:
                 # Для отладки берём данные из data_set.py
                 import data_set
 
                 raw_data = data_set.data_set
-            database.fill_sessions_table(db, raw_data, last_date)
+            database.fill_sessions_table(db, raw_data, cur_date.cur_date_txt)
 
-            cur_date = cur_date + datetime.timedelta(days=1)
-            logging.info(f"===> Обработан {i} день {cur_date_txt} за {datetime.datetime.now() - start_time} сек.\n")
+            logging.info(f"===> Обработан {i} день {cur_date.cur_date_txt} "
+                         f"за {datetime.datetime.now() - start_time} сек.\n")
+            cur_date.add_day()
             i = i + 1
 
     logging.info(f"Программа завершена")
