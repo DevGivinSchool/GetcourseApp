@@ -67,22 +67,24 @@ def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str)
         # time.sleep(30)
         browser.quit()
 
+    logging.info(f"End parse date")
     return raw_data
 
-    logging.info(f"End parse date")
+
 
 
 def users_processing(browser, dict_cache, raw_data):
     for line in raw_data:
         user = line[12]  # Пользователь
         logging.debug(f"Обработка пользователя {user}")
-        email = telegram = country = city = '-- пусто --'
+        email = telegram = country = city = phone = '-- пусто --'
         if user in dict_cache:
             logging.debug(f"Пользователь {user} найден в кэше")
             email = dict_cache[user][0]
             telegram = dict_cache[user][1]
             country = dict_cache[user][2]
             city = dict_cache[user][3]
+            phone = dict_cache[user][4]
         else:
             link = f"https://givin.school{line[-1]}"
             logging.debug(f"Обработка страницы - {link}")
@@ -92,19 +94,21 @@ def users_processing(browser, dict_cache, raw_data):
                 # logging.debug(f"browser.page_source\n{browser.page_source}")
                 if browser.title == "GetCourse - Error Default":
                     # У некоторых пользователей страница не находится, и возвращается стандартная страница Геткурса
-                    dict_cache[user] = (email, telegram, country, city)
+                    dict_cache[user] = (email, telegram, country, city, phone)
                     line.append(email)
                     line.append(telegram)
                     line.append(country)
                     line.append(city)
+                    line.append(phone)
                     logging.error(f"ERROR: Getcourse вернул стандартную страницу ошибки 404")
                     continue
             except Exception:  # noqa: E722
-                dict_cache[user] = (email, telegram, country, city)
+                dict_cache[user] = (email, telegram, country, city, phone)
                 line.append(email)
                 line.append(telegram)
                 line.append(country)
                 line.append(city)
+                line.append(phone)
                 error_handler(f"Ошибка парсинга страницы {link}", do_exit=False)
                 continue
             time.sleep(TIMEOUT)
@@ -151,12 +155,23 @@ def users_processing(browser, dict_cache, raw_data):
             else:
                 logging.debug(f"city={city}")
 
-            dict_cache[user] = (email, telegram, country, city)  # add user to cache
+            # Поиск Телефон
+            logging.debug("Поиск Телефон")
+            phone_element = browser.find_element(By.CSS_SELECTOR, "#User_phone")
+            phone = phone_element.get_attribute("value")
+            if len(phone) <= 0:
+                logging.warning(f"Телефон не найден")
+                phone = '-- пусто --'
+            else:
+                logging.debug(f"phone={phone}")
+
+            dict_cache[user] = (email, telegram, country, city, phone)  # add user to cache
 
         line.append(email)
         line.append(telegram)
         line.append(country)
         line.append(city)
+        line.append(phone)
     logging.debug(f"dict_cache\n{dict_cache}")
 
 
