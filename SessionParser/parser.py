@@ -4,12 +4,19 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from error_handling import error_handler as error_handler
 from typing import List
 
-TIMEOUT = 3  # timeout in sec
+"""
 selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {"method":"css selector","selector":"div.user-email"
 Можно попробовать увеличить параметр `TIMEOUT = 1  # timeout in sec` в файле `parser.py`.
+
+В процедуре обработки страницы пользователя users_processing, есть timeout, и за 1 сек title обычно успевает загрузится, 
+а вот  поле email иногда не успевает, поэтому для этого поля ввёл ожидание пока оно загрузится.
+"""
+TIMEOUT = 2  # timeout in sec
 
 
 def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str):
@@ -45,7 +52,7 @@ def parse_sessions_one_day(settings, env, dict_cache, browser, filter_date: str)
                 count_button_show_more2 = count_button_show_more
                 logging.debug(f"Нажимаю на кнопку - {button_show_more.text}")
                 button_show_more.click()
-                time.sleep(TIMEOUT)
+                time.sleep(3)
                 browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(TIMEOUT)
                 count_button_show_more, button_show_more = find_button_show_more(browser)
@@ -86,8 +93,12 @@ def users_processing(browser, dict_cache, raw_data):
             logging.debug(f"Обработка страницы - {link}")
             try:
                 browser.get(link)
+                time.sleep(TIMEOUT)
+                # wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.user-email")))
                 # logging.debug(f"browser.title\n{browser.title}")
                 # logging.debug(f"browser.page_source\n{browser.page_source}")
+                # WebDriverWait(browser, 10).until(EC.title_is("title"))  # Проверка на фейковый заголовок, лишь бы был.
+                # WebDriverWait(browser, 10, ignored_exceptions=None).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input.btn.btn-primary.btn-lg")))
                 if browser.title == "GetCourse - Error Default":
                     # У некоторых пользователей страница не находится, и возвращается стандартная страница Геткурса
                     dict_cache[user] = (email, telegram, country, city, phone)
@@ -107,11 +118,11 @@ def users_processing(browser, dict_cache, raw_data):
                 line.append(phone)
                 error_handler(f"Ошибка парсинга страницы {link}", do_exit=False)
                 continue
-            time.sleep(TIMEOUT)
 
             # Поиск email
             logging.debug("Поиск email")
-            email_element = browser.find_element(By.CSS_SELECTOR, "div.user-email")
+            email_element = WebDriverWait(browser, 60).until(lambda x: x.find_element(By.CSS_SELECTOR, "div.user-email"))
+            # email_element = browser.find_element(By.CSS_SELECTOR, "div.user-email")
             email = email_element.text
             if len(email) <= 0:
                 logging.warning(f"email не найден")
@@ -168,7 +179,7 @@ def users_processing(browser, dict_cache, raw_data):
         line.append(country)
         line.append(city)
         line.append(phone)
-    logging.debug(f"dict_cache\n{dict_cache}")
+    # logging.debug(f"dict_cache\n{dict_cache}")
 
 
 def get_raw_data_from_table(browser, filter_date) -> List[str]:
@@ -201,8 +212,8 @@ def get_raw_data_from_table(browser, filter_date) -> List[str]:
         cols2.append(href)  # Добавить столбец ссылку на профиль Пользователя
         raw_data.append(cols2)
     logging.debug(f"В таблице за {filter_date} всего {len(raw_data)} строк")
-    for line in raw_data:
-        logging.debug(line)
+    # for line in raw_data:
+    #     logging.debug(line)
     return raw_data
 
 
