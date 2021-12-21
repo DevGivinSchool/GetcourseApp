@@ -1,0 +1,5 @@
+{
+    "chromedriver_path": "chromedriver.exe",
+    "db_file": "sp.db",
+    "headless": true
+}
