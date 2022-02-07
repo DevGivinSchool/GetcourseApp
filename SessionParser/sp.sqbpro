@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/MyGit/GetcourseApp/SessionParser/sp.db" readonly="0" foreign_keys="0" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="0" synchronous="1"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="150"/><column_width id="3" width="5460"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,9:mainlast_date"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="last_date" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="61"/><column index="2" value="107"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1">select count() from sessions;</sql><sql name="SQL 2">select country, region, city from sessions
+group by country, region, city
+order by country, region, city
+</sql><sql name="SQL 4">select user_country, user_city from sessions
+group by user_country, user_city
+order by user_country, user_city
+;
+</sql><sql name="SQL 5">select distinct(user), user_email, user_telegram, user_phone
+--, user_url 
+from sessions where 
+user_email is not null and user_telegram is not null user_phone
+region in ('Амурская область')
+order by user;</sql><sql name="SQL 6">select * from sessions where user_url like '%65713478'</sql><sql name="SQL 7">select distinct(user), country, region, city, user_country, user_city, user_email, user_telegram, user_phone
+, user_url 
+from sessions
+where user_email!='-- пусто --' and country='RU'
+order by region
+;</sql><sql name="SQL 14">select distinct(user), country, region, city, user_country, user_city, user_email, user_telegram, user_phone
+, user_url 
+from sessions
+where user_email!='-- пусто --' and country='US'
+order by user
+;</sql><current_tab id="6"/></tab_sql></sqlb_project>

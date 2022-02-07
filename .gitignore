@@ -224,4 +224,3 @@ SessionParser/sp.db
 SessionParser/test.py
 SessionParser/chromedriver.exe
 SessionParser/data_set.py
-*.sqbpro
